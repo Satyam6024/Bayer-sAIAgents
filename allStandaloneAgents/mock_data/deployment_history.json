@@ -1,0 +1,151 @@
+{
+  "cluster": "bayer-prod-eu-west-1",
+  "query_window": "2026-02-05T00:00:00Z/2026-02-06T08:15:00Z",
+  "deployments": [
+    {
+      "id": "deploy-001",
+      "timestamp": "2026-02-05T14:00:00Z",
+      "service": "payment-service",
+      "version": "v2.13.2",
+      "previous_version": "v2.13.1",
+      "type": "rolling_update",
+      "trigger": "hotfix",
+      "author": "ci-bot (merged by: j.mueller)",
+      "status": "SUCCESS",
+      "changelog": [
+        "FIX: Corrected decimal rounding in EUR transactions",
+        "FIX: Updated retry logic for external payment gateway"
+      ],
+      "config_changes": [],
+      "rollback_available": true
+    },
+    {
+      "id": "deploy-002",
+      "timestamp": "2026-02-05T22:30:00Z",
+      "service": "payment-service",
+      "version": "v2.14.0",
+      "previous_version": "v2.13.2",
+      "type": "canary",
+      "canary_weight_pct": 15,
+      "trigger": "scheduled_release",
+      "author": "ci-bot (merged by: a.krishnan)",
+      "status": "IN_PROGRESS",
+      "changelog": [
+        "FEAT: New batch transaction processor with parallel execution",
+        "FEAT: Increased thread pool from 200 to 800 for high-throughput mode",
+        "FEAT: Added in-memory transaction queue for reduced latency",
+        "REFACTOR: Migrated connection pooling from C3P0 to HikariCP",
+        "CONFIG: Updated JVM heap from 2Gi to 4Gi"
+      ],
+      "config_changes": [
+        {
+          "key": "payment.batch.thread_pool_size",
+          "old_value": "200",
+          "new_value": "800",
+          "impact": "4x thread increase, proportional memory growth expected"
+        },
+        {
+          "key": "payment.batch.queue_type",
+          "old_value": "kafka_backed",
+          "new_value": "in_memory_unbounded",
+          "impact": "CRITICAL: Unbounded in-memory queue can cause OOM under load"
+        },
+        {
+          "key": "payment.db.pool_size",
+          "old_value": "100",
+          "new_value": "200",
+          "impact": "Doubled DB connections, may hit database max_connections limit"
+        },
+        {
+          "key": "jvm.heap.max",
+          "old_value": "2Gi",
+          "new_value": "4Gi",
+          "impact": "Matches Kubernetes memory limit exactly — no headroom for native memory"
+        }
+      ],
+      "rollback_available": true,
+      "canary_pod": "pay-pod-new-6h4c",
+      "notes": "Canary deployed at 07:30 on Feb 6 to pay-pod-new-6h4c"
+    },
+    {
+      "id": "deploy-003",
+      "timestamp": "2026-02-05T20:00:00Z",
+      "service": "api-gateway",
+      "version": "v5.8.1",
+      "previous_version": "v5.8.0",
+      "type": "rolling_update",
+      "trigger": "feature_release",
+      "author": "ci-bot (merged by: s.weber)",
+      "status": "SUCCESS",
+      "changelog": [
+        "FEAT: Dynamic rate limiting based on client tier",
+        "FIX: Circuit breaker threshold tuned from 50% to 70% error rate"
+      ],
+      "config_changes": [
+        {
+          "key": "gateway.circuit_breaker.error_threshold_pct",
+          "old_value": "50",
+          "new_value": "70",
+          "impact": "Circuit breaker now slower to trip — more traffic reaches degraded backends"
+        }
+      ],
+      "rollback_available": true
+    },
+    {
+      "id": "deploy-004",
+      "timestamp": "2026-02-05T18:00:00Z",
+      "service": "notification-service",
+      "version": "v3.2.0",
+      "previous_version": "v3.1.4",
+      "type": "blue_green",
+      "trigger": "feature_release",
+      "author": "ci-bot (merged by: l.chen)",
+      "status": "SUCCESS",
+      "changelog": [
+        "FEAT: Added SMS fallback for critical payment notifications",
+        "PERF: Optimized Kafka consumer batch size from 100 to 500"
+      ],
+      "config_changes": [],
+      "rollback_available": true
+    }
+  ],
+  "infrastructure_changes": [
+    {
+      "id": "infra-001",
+      "timestamp": "2026-02-05T16:00:00Z",
+      "type": "certificate_rotation",
+      "target": "payments-db.bayer.internal",
+      "status": "PARTIAL_FAILURE",
+      "details": "TLS cert rotated on primary DB node. Secondary nodes and canary pods received old cert bundle. New cert valid until 2027-02-05. Old cert expired 2026-02-05T23:59:59Z.",
+      "affected_services": ["payment-service"],
+      "remediation": "Restart affected pods with updated cert-manager secret, or run: kubectl rollout restart deployment/payment-service"
+    },
+    {
+      "id": "infra-002",
+      "timestamp": "2026-02-05T10:00:00Z",
+      "type": "database_maintenance",
+      "target": "payments-db-primary",
+      "status": "SUCCESS",
+      "details": "Routine vacuum and reindex on transactions table. Note: maintenance window cancelled index rebuild on idx_transactions_status_created_at due to table lock timeout.",
+      "affected_services": ["payment-service"]
+    },
+    {
+      "id": "infra-003",
+      "timestamp": "2026-02-06T06:00:00Z",
+      "type": "traffic_pattern_change",
+      "target": "api-gateway",
+      "status": "DETECTED",
+      "details": "Mobile app v3.8.0 released in EU app stores. Push notification campaign triggered 3x normal traffic spike starting 07:45. Traffic pattern matches promotional event 'Flash Sale February'.",
+      "affected_services": ["api-gateway", "payment-service", "order-service"]
+    }
+  ],
+  "cert_inventory": {
+    "payments-db.bayer.internal": {
+      "current_cert_expiry": "2027-02-05T23:59:59Z",
+      "old_cert_expiry": "2026-02-05T23:59:59Z",
+      "cert_manager_secret": "payments-db-tls",
+      "last_secret_sync": "2026-02-05T16:00:00Z",
+      "pods_with_stale_cert": ["pay-pod-new-6h4c", "pay-pod-1a9d"]
+    }
+  }
+}

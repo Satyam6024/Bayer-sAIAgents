@@ -1,0 +1,164 @@
+{
+  "findings": [
+    {
+      "id": "find-5031580a",
+      "agent": "metrics_agent",
+      "timestamp": "2026-02-06T10:30:02.225843+00:00",
+      "title": "Memory leak confirmed \u2014 OOM every ~14 min",
+      "description": "Memory grows at 95 MiB/min. GC overhead 78%. Source: TransactionProcessor.batchAllocate - unbounded ArrayList growth.",
+      "severity": "P1_CRITICAL",
+      "confidence": 0.96,
+      "evidence": {
+        "leak_rate_mb_per_min": 95,
+        "gc_overhead_pct": 78,
+        "oom_cycle_min": 13.6,
+        "timeseries_sample": [
+          {
+            "t": "08:00",
+            "value": 2800
+          },
+          {
+            "t": "08:01",
+            "value": 3100
+          },
+          {
+            "t": "08:02",
+            "value": 3350
+          },
+          {
+            "t": "08:03",
+            "value": 3580
+          },
+          {
+            "t": "08:04",
+            "value": 3891
+          }
+        ]
+      },
+      "related_services": [
+        "payment-service"
+      ]
+    },
+    {
+      "id": "find-3b5b9bcd",
+      "agent": "metrics_agent",
+      "timestamp": "2026-02-06T10:30:02.226669+00:00",
+      "title": "P99 latency spike: 1200ms \u2192 25000ms (20.8x)",
+      "description": "P99 degraded 20.8x. Sawtooth pattern tied to pod restart cycles.",
+      "severity": "P1_CRITICAL",
+      "confidence": 0.98,
+      "evidence": {
+        "p99_start": 1200,
+        "p99_peak": 25000,
+        "factor": 20.8
+      },
+      "related_services": [
+        "payment-service"
+      ]
+    },
+    {
+      "id": "find-2001fbf6",
+      "agent": "metrics_agent",
+      "timestamp": "2026-02-06T10:30:02.227094+00:00",
+      "title": "Error rate surged to 94.2%",
+      "description": "Error rate escalated from 2.1% to 94.2%. Correlated with OOM + pod failures.",
+      "severity": "P1_CRITICAL",
+      "confidence": 0.97,
+      "evidence": {
+        "baseline_pct": 2.1,
+        "peak_pct": 94.2
+      },
+      "related_services": [
+        "payment-service"
+      ]
+    },
+    {
+      "id": "find-970ddce4",
+      "agent": "metrics_agent",
+      "timestamp": "2026-02-06T10:30:02.227662+00:00",
+      "title": "DB pool saturated \u2014 1847 requests queued",
+      "description": "All 200 connections active. 1847 queued. Checkout time 28.4s. Slow queries holding locks.",
+      "severity": "P1_CRITICAL",
+      "confidence": 0.95,
+      "evidence": {
+        "pool": {
+          "max_size": 200,
+          "active": 200,
+          "idle": 0,
+          "pending": 1847,
+          "avg_checkout_time_ms": 28400
+        },
+        "slow_queries": [
+          {
+            "query_hash": "q-7a3f",
+            "pattern": "SELECT * FROM transactions WHERE status=?",
+            "avg_execution_ms": 38000,
+            "count_last_15min": 342,
+            "rows_scanned_avg": 2800000,
+            "recommendation": "Add composite index on (status, created_at)"
+          }
+        ]
+      },
+      "related_services": [
+        "payment-service"
+      ]
+    },
+    {
+      "id": "find-56957cb2",
+      "agent": "metrics_agent",
+      "timestamp": "2026-02-06T10:30:02.228456+00:00",
+      "title": "2 pods critical \u2014 33% capacity remaining",
+      "description": "Unhealthy: ['pay-pod-9b1e', 'pay-pod-4f2c']. Circuit breaker: OPEN. Surviving pods >88% CPU.",
+      "severity": "P1_CRITICAL",
+      "confidence": 0.99,
+      "evidence": {
+        "unhealthy_pods": [
+          "pay-pod-9b1e",
+          "pay-pod-4f2c"
+        ],
+        "healthy_pct": 33,
+        "circuit": "OPEN"
+      },
+      "related_services": [
+        "payment-service"
+      ]
+    }
+  ],
+  "outgoing_message": {
+    "id": "msg-8a1453f7",
+    "sender": "metrics_agent",
+    "receiver": "commander",
+    "type": "STATUS_UPDATE",
+    "payload": {
+      "status": "complete",
+      "findings_count": 5,
+      "summary": [
+        {
+          "id": "find-5031580a",
+          "title": "Memory leak confirmed \u2014 OOM every ~14 min",
+          "severity": "P1_CRITICAL"
+        },
+        {
+          "id": "find-3b5b9bcd",
+          "title": "P99 latency spike: 1200ms \u2192 25000ms (20.8x)",
+          "severity": "P1_CRITICAL"
+        },
+        {
+          "id": "find-2001fbf6",
+          "title": "Error rate surged to 94.2%",
+          "severity": "P1_CRITICAL"
+        },
+        {
+          "id": "find-970ddce4",
+          "title": "DB pool saturated \u2014 1847 requests queued",
+          "severity": "P1_CRITICAL"
+        },
+        {
+          "id": "find-56957cb2",
+          "title": "2 pods critical \u2014 33% capacity remaining",
+          "severity": "P1_CRITICAL"
+        }
+      ]
+    }
+  }
+}

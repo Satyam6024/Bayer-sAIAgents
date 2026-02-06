@@ -1,0 +1,128 @@
+{
+  "alert": {
+    "source": "PagerDuty",
+    "title": "payment-service: P99 latency > 10s, error rate > 80%",
+    "severity": "P1",
+    "affected_service": "payment-service"
+  },
+  "rca": {
+    "id": "rca-4e33eca3",
+    "timestamp": "2026-02-06T13:06:55.892885+00:00",
+    "severity": "P1_CRITICAL",
+    "summary": "COMPOUND FAILURE: v2.14.0 unbounded queue + 4x threads \u2192 95 MiB/min leak \u2192 OOM every ~14 min. Compounded by missing DB index, partial TLS cert failure, 3x traffic spike, raised circuit breaker.",
+    "root_causes": [
+      {
+        "rank": 1,
+        "title": "Unbounded in-memory queue in v2.14.0",
+        "detail": "kafka_backed\u2192in_memory_unbounded. Threads 200\u2192800. JVM=K8s limit.",
+        "confidence": 0.97,
+        "category": "deployment_regression"
+      },
+      {
+        "rank": 2,
+        "title": "Missing DB index \u2014 full table scans",
+        "detail": "Index rebuild cancelled. 2.8M row scans at 38-45s each.",
+        "confidence": 0.95,
+        "category": "infrastructure_gap"
+      }
+    ],
+    "contributing_factors": [
+      "3x traffic from Flash Sale",
+      "Partial TLS cert rotation \u2014 canary can't reach DB",
+      "Circuit breaker raised 50%\u219270%",
+      "JVM heap 4Gi = K8s limit (no GC headroom)",
+      "Deadlocks in batch processor"
+    ],
+    "timeline": [
+      {
+        "t": "Feb5 10:00",
+        "e": "DB index rebuild cancelled"
+      },
+      {
+        "t": "Feb5 16:00",
+        "e": "TLS cert rotation PARTIAL FAILURE"
+      },
+      {
+        "t": "Feb5 20:00",
+        "e": "Circuit breaker \u2192 70%"
+      },
+      {
+        "t": "Feb5 22:30",
+        "e": "v2.14.0 canary deployed (15%)"
+      },
+      {
+        "t": "Feb6 06:00",
+        "e": "Flash Sale push sent"
+      },
+      {
+        "t": "Feb6 07:45",
+        "e": "3x traffic spike"
+      },
+      {
+        "t": "Feb6 07:48",
+        "e": "First OOMKill"
+      },
+      {
+        "t": "Feb6 08:00",
+        "e": "\u26a0 INCIDENT \u2014 503s at gateway"
+      },
+      {
+        "t": "Feb6 08:04",
+        "e": "CrashLoopBackOff"
+      },
+      {
+        "t": "Feb6 08:06",
+        "e": "DB pool exhausted"
+      },
+      {
+        "t": "Feb6 08:13",
+        "e": "33% capacity, circuit OPEN"
+      }
+    ],
+    "remediation": [
+      {
+        "p": "IMMEDIATE",
+        "action": "Rollback to v2.13.2",
+        "cmd": "kubectl rollout undo deployment/payment-service",
+        "risk": "LOW"
+      },
+      {
+        "p": "IMMEDIATE",
+        "action": "Rebuild missing DB index",
+        "cmd": "CREATE INDEX CONCURRENTLY idx_transactions_status_created_at ON transactions(status,created_at);",
+        "risk": "LOW"
+      },
+      {
+        "p": "IMMEDIATE",
+        "action": "Rotate TLS certs",
+        "cmd": "kubectl rollout restart deployment/payment-service",
+        "risk": "LOW"
+      },
+      {
+        "p": "SHORT_TERM",
+        "action": "Circuit breaker \u2192 50%",
+        "cmd": "circuit_breaker.error_threshold_pct=50",
+        "risk": "LOW"
+      },
+      {
+        "p": "SHORT_TERM",
+        "action": "K8s memory \u2192 5Gi",
+        "cmd": "kubectl set resources ... --limits=memory=5Gi",
+        "risk": "MEDIUM"
+      },
+      {
+        "p": "PREVENTIVE",
+        "action": "Bounded queue for v2.14.0",
+        "cmd": "BlockingQueue(capacity=10000)",
+        "risk": "CODE_REVIEW"
+      }
+    ],
+    "blast_radius": [
+      "payment-service (94%)",
+      "order-service",
+      "api-gateway",
+      "notification-service",
+      "end users"
+    ]
+  }
+}

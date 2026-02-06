@@ -1,0 +1,166 @@
+{
+  "cluster": "bayer-prod-eu-west-1",
+  "collection_window": "2026-02-06T08:00:00Z/2026-02-06T08:15:00Z",
+  "granularity_seconds": 60,
+  "services": {
+    "payment-service": {
+      "pods": {
+        "pay-pod-9b1e": {
+          "status": "CrashLoopBackOff",
+          "restart_count": 4,
+          "cpu": {
+            "unit": "millicores",
+            "limit": 2000,
+            "timeseries": [
+              {"t": "08:00", "value": 1420},
+              {"t": "08:01", "value": 1680},
+              {"t": "08:02", "value": 1890},
+              {"t": "08:03", "value": 1975},
+              {"t": "08:04", "value": 1998},
+              {"t": "08:05", "value": 1450},
+              {"t": "08:06", "value": 1820},
+              {"t": "08:07", "value": 1950},
+              {"t": "08:08", "value": 1990},
+              {"t": "08:09", "value": 2000},
+              {"t": "08:10", "value": 0},
+              {"t": "08:11", "value": 600},
+              {"t": "08:12", "value": 1750},
+              {"t": "08:13", "value": 1980},
+              {"t": "08:14", "value": 2000}
+            ]
+          },
+          "memory": {
+            "unit": "MiB",
+            "limit": 4096,
+            "timeseries": [
+              {"t": "08:00", "value": 2800},
+              {"t": "08:01", "value": 3100},
+              {"t": "08:02", "value": 3350},
+              {"t": "08:03", "value": 3580},
+              {"t": "08:04", "value": 3891},
+              {"t": "08:05", "value": 4300},
+              {"t": "08:06", "value": 800},
+              {"t": "08:07", "value": 1200},
+              {"t": "08:08", "value": 2100},
+              {"t": "08:09", "value": 2900},
+              {"t": "08:10", "value": 3400},
+              {"t": "08:11", "value": 3750},
+              {"t": "08:12", "value": 3950},
+              {"t": "08:13", "value": 4100},
+              {"t": "08:14", "value": 4300}
+            ],
+            "leak_analysis": {
+              "leak_detected": true,
+              "leak_rate_mb_per_min": 95,
+              "estimated_oom_minutes": 13.6,
+              "gc_overhead_pct": 78,
+              "suspected_source": "TransactionProcessor.batchAllocate - unbounded ArrayList growth"
+            }
+          },
+          "network": {
+            "connections_active": 847,
+            "connections_limit": 1024,
+            "tcp_retransmits_per_sec": 340,
+            "dns_resolution_failures": 12
+          }
+        },
+        "pay-pod-4f2c": {
+          "status": "OOMKilled",
+          "restart_count": 3,
+          "last_oom_timestamp": "2026-02-06T08:04:45Z"
+        },
+        "pay-pod-new-6h4c": {
+          "status": "Running",
+          "restart_count": 0,
+          "note": "Deployed at 07:30 via canary release v2.14.0, TLS cert issue preventing DB connections"
+        },
+        "pay-pod-7k2m": {"status": "Running", "cpu_utilization_pct": 92},
+        "pay-pod-3j8n": {"status": "Running", "cpu_utilization_pct": 88}
+      },
+      "latency": {
+        "unit": "ms",
+        "timeseries": [
+          {"t": "08:00", "p50": 120, "p95": 450, "p99": 1200, "max": 5100},
+          {"t": "08:02", "p50": 340, "p95": 1800, "p99": 4500, "max": 12000},
+          {"t": "08:04", "p50": 890, "p95": 4200, "p99": 8900, "max": 30000},
+          {"t": "08:06", "p50": 1200, "p95": 5100, "p99": 12000, "max": 45200},
+          {"t": "08:08", "p50": 2100, "p95": 8400, "p99": 18000, "max": 60000},
+          {"t": "08:10", "p50": 450, "p95": 2200, "p99": 5500, "max": 15000},
+          {"t": "08:12", "p50": 1500, "p95": 6800, "p99": 15000, "max": 45000},
+          {"t": "08:14", "p50": 2800, "p95": 12000, "p99": 25000, "max": 60000}
+        ]
+      },
+      "error_rate": {
+        "unit": "percent",
+        "timeseries": [
+          {"t": "08:00", "value": 2.1},
+          {"t": "08:02", "value": 18.5},
+          {"t": "08:04", "value": 47.3},
+          {"t": "08:06", "value": 68.9},
+          {"t": "08:08", "value": 82.4},
+          {"t": "08:10", "value": 55.1},
+          {"t": "08:12", "value": 71.8},
+          {"t": "08:14", "value": 94.2}
+        ]
+      },
+      "database": {
+        "connection_pool": {
+          "max_size": 200,
+          "active": 200,
+          "idle": 0,
+          "pending": 1847,
+          "avg_checkout_time_ms": 28400
+        },
+        "slow_queries": [
+          {
+            "query_hash": "q-7a3f",
+            "pattern": "SELECT * FROM transactions WHERE status=?",
+            "avg_execution_ms": 38000,
+            "count_last_15min": 342,
+            "rows_scanned_avg": 2800000,
+            "recommendation": "Add composite index on (status, created_at)"
+          }
+        ],
+        "replication_lag_ms": 4500
+      }
+    },
+    "api-gateway": {
+      "throughput": {
+        "requests_per_sec": {
+          "timeseries": [
+            {"t": "08:00", "value": 4200},
+            {"t": "08:02", "value": 6800},
+            {"t": "08:04", "value": 12400},
+            {"t": "08:06", "value": 11200},
+            {"t": "08:08", "value": 9800},
+            {"t": "08:10", "value": 10500},
+            {"t": "08:12", "value": 8900},
+            {"t": "08:14", "value": 7200}
+          ]
+        }
+      },
+      "upstream_health": {
+        "payment-service": {"healthy_pct": 33, "circuit_state": "OPEN"},
+        "order-service": {"healthy_pct": 85, "circuit_state": "CLOSED"},
+        "inventory-service": {"healthy_pct": 100, "circuit_state": "CLOSED"},
+        "notification-service": {"healthy_pct": 100, "circuit_state": "CLOSED"}
+      }
+    },
+    "kafka": {
+      "topic_payment_events": {
+        "partition_count": 12,
+        "consumer_lag": 84201,
+        "produce_rate_per_sec": 0,
+        "consume_rate_per_sec": 120,
+        "oldest_message_age_sec": 420
+      }
+    }
+  },
+  "kubernetes_events": [
+    {"timestamp": "2026-02-06T07:30:00Z", "type": "Normal", "reason": "Scheduled", "object": "pod/pay-pod-new-6h4c", "message": "Canary pod scheduled for payment-service v2.14.0"},
+    {"timestamp": "2026-02-06T07:48:00Z", "type": "Warning", "reason": "OOMKilling", "object": "pod/pay-pod-4f2c", "message": "Memory limit exceeded, container killed"},
+    {"timestamp": "2026-02-06T08:04:45Z", "type": "Warning", "reason": "OOMKilling", "object": "pod/pay-pod-4f2c", "message": "Second OOMKill event"},
+    {"timestamp": "2026-02-06T08:06:00Z", "type": "Warning", "reason": "BackOff", "object": "pod/pay-pod-9b1e", "message": "Back-off restarting failed container"},
+    {"timestamp": "2026-02-06T08:10:00Z", "type": "Warning", "reason": "Unhealthy", "object": "pod/pay-pod-new-6h4c", "message": "Readiness probe failed: TLS handshake error"}
+  ]
+}

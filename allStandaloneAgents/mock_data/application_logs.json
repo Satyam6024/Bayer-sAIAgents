@@ -1,0 +1,222 @@
+{
+  "cluster": "bayer-prod-eu-west-1",
+  "collection_window": "2026-02-06T08:00:00Z/2026-02-06T08:15:00Z",
+  "log_entries": [
+    {
+      "id": "log-0001",
+      "timestamp": "2026-02-06T08:00:12.341Z",
+      "service": "api-gateway",
+      "instance": "gw-pod-7a3f",
+      "level": "WARN",
+      "message": "Upstream connection timeout after 5000ms to payment-service:8443",
+      "trace_id": "tr-88af2c01",
+      "span_id": "sp-001a",
+      "metadata": {
+        "retry_count": 2,
+        "circuit_breaker_state": "HALF_OPEN",
+        "downstream_service": "payment-service",
+        "request_path": "/api/v2/transactions/process"
+      }
+    },
+    {
+      "id": "log-0002",
+      "timestamp": "2026-02-06T08:00:14.892Z",
+      "service": "payment-service",
+      "instance": "pay-pod-9b1e",
+      "level": "ERROR",
+      "message": "java.lang.OutOfMemoryError: Java heap space at com.bayer.payments.TransactionProcessor.batchAllocate(TransactionProcessor.java:342)",
+      "trace_id": "tr-88af2c01",
+      "span_id": "sp-002b",
+      "stack_trace": [
+        "com.bayer.payments.TransactionProcessor.batchAllocate(TransactionProcessor.java:342)",
+        "com.bayer.payments.TransactionProcessor.processQueue(TransactionProcessor.java:218)",
+        "com.bayer.payments.core.WorkerThread.run(WorkerThread.java:89)",
+        "java.base/java.lang.Thread.run(Thread.java:834)"
+      ],
+      "metadata": {
+        "heap_used_mb": 3891,
+        "heap_max_mb": 4096,
+        "gc_pause_ms": 4200,
+        "thread_count": 847,
+        "queue_depth": 14320
+      }
+    },
+    {
+      "id": "log-0003",
+      "timestamp": "2026-02-06T08:01:02.117Z",
+      "service": "payment-service",
+      "instance": "pay-pod-9b1e",
+      "level": "ERROR",
+      "message": "Connection pool exhausted: max_connections=200, active=200, pending=1847",
+      "trace_id": "tr-91bc3d44",
+      "span_id": "sp-003c",
+      "metadata": {
+        "pool_name": "HikariPool-payments-db",
+        "max_pool_size": 200,
+        "active_connections": 200,
+        "pending_requests": 1847,
+        "wait_timeout_ms": 30000
+      }
+    },
+    {
+      "id": "log-0004",
+      "timestamp": "2026-02-06T08:02:33.450Z",
+      "service": "order-service",
+      "instance": "ord-pod-3c7d",
+      "level": "ERROR",
+      "message": "Cascading failure detected: payment-service returned 503 for 94% of requests in last 60s",
+      "trace_id": "tr-a2cd4e55",
+      "span_id": "sp-004d",
+      "metadata": {
+        "success_rate_pct": 6,
+        "error_codes": {"503": 1412, "504": 87, "200": 96},
+        "fallback_activated": true,
+        "fallback_type": "QUEUE_FOR_RETRY"
+      }
+    },
+    {
+      "id": "log-0005",
+      "timestamp": "2026-02-06T08:03:11.773Z",
+      "service": "notification-service",
+      "instance": "notif-pod-5e2a",
+      "level": "WARN",
+      "message": "Kafka consumer lag exceeded threshold: topic=payment-events, lag=84201, threshold=5000",
+      "trace_id": null,
+      "span_id": null,
+      "metadata": {
+        "consumer_group": "notification-processor",
+        "topic": "payment-events",
+        "partition_count": 12,
+        "current_lag": 84201,
+        "lag_threshold": 5000,
+        "oldest_unconsumed_offset_age_sec": 420
+      }
+    },
+    {
+      "id": "log-0006",
+      "timestamp": "2026-02-06T08:04:45.221Z",
+      "service": "payment-service",
+      "instance": "pay-pod-4f2c",
+      "level": "FATAL",
+      "message": "Pod OOMKilled by Kubernetes: memory limit 4Gi exceeded, actual usage 4.3Gi",
+      "trace_id": null,
+      "span_id": null,
+      "metadata": {
+        "kubernetes_event": "OOMKilled",
+        "memory_limit": "4Gi",
+        "memory_actual": "4.3Gi",
+        "restart_count": 3,
+        "last_restart": "2026-02-06T07:48:00Z",
+        "container_uptime_sec": 1005
+      }
+    },
+    {
+      "id": "log-0007",
+      "timestamp": "2026-02-06T08:05:02.889Z",
+      "service": "api-gateway",
+      "instance": "gw-pod-7a3f",
+      "level": "ERROR",
+      "message": "Rate limiter triggered: client=mobile-app, requests_per_sec=12400, limit=5000",
+      "trace_id": "tr-b3de5f66",
+      "span_id": "sp-007g",
+      "metadata": {
+        "client_id": "mobile-app-v3",
+        "rate_limit": 5000,
+        "actual_rps": 12400,
+        "throttled_requests": 7400,
+        "source_ips_count": 48000
+      }
+    },
+    {
+      "id": "log-0008",
+      "timestamp": "2026-02-06T08:06:18.334Z",
+      "service": "payment-service",
+      "instance": "pay-pod-9b1e",
+      "level": "ERROR",
+      "message": "Database query timeout: SELECT * FROM transactions WHERE status='PENDING' took 45200ms (limit: 5000ms)",
+      "trace_id": "tr-c4ef6077",
+      "span_id": "sp-008h",
+      "metadata": {
+        "query_type": "SELECT",
+        "table": "transactions",
+        "execution_time_ms": 45200,
+        "timeout_ms": 5000,
+        "rows_scanned": 2800000,
+        "missing_index": "idx_transactions_status_created_at"
+      }
+    },
+    {
+      "id": "log-0009",
+      "timestamp": "2026-02-06T08:08:44.556Z",
+      "service": "inventory-service",
+      "instance": "inv-pod-8g3b",
+      "level": "WARN",
+      "message": "Stale cache detected: redis key 'product-catalog:v2' TTL=-1, last_refresh=2026-02-05T22:00:00Z",
+      "trace_id": "tr-d5fg7188",
+      "span_id": "sp-009i",
+      "metadata": {
+        "cache_backend": "redis-cluster",
+        "key_pattern": "product-catalog:*",
+        "stale_keys_count": 342,
+        "cache_hit_rate_pct": 12,
+        "expected_hit_rate_pct": 95
+      }
+    },
+    {
+      "id": "log-0010",
+      "timestamp": "2026-02-06T08:10:02.112Z",
+      "service": "payment-service",
+      "instance": "pay-pod-new-6h4c",
+      "level": "ERROR",
+      "message": "TLS handshake failed: certificate CN=payments-db.bayer.internal expired at 2026-02-05T23:59:59Z",
+      "trace_id": "tr-e6gh8299",
+      "span_id": "sp-010j",
+      "metadata": {
+        "cert_cn": "payments-db.bayer.internal",
+        "cert_expiry": "2026-02-05T23:59:59Z",
+        "cert_issuer": "bayer-internal-ca",
+        "connection_target": "payments-db-primary.eu-west-1",
+        "ssl_error_code": "SSL_ERROR_EXPIRED_CERT_ALERT"
+      }
+    },
+    {
+      "id": "log-0011",
+      "timestamp": "2026-02-06T08:11:30.887Z",
+      "service": "payment-service",
+      "instance": "pay-pod-9b1e",
+      "level": "ERROR",
+      "message": "Deadlock detected in transaction batch processor: threads [worker-14, worker-22] holding locks on [tx_batch_7701, tx_batch_7702]",
+      "trace_id": "tr-f7hi9300",
+      "span_id": "sp-011k",
+      "stack_trace": [
+        "com.bayer.payments.batch.DeadlockDetector.analyze(DeadlockDetector.java:156)",
+        "com.bayer.payments.batch.BatchOrchestrator.checkHealth(BatchOrchestrator.java:201)",
+        "com.bayer.payments.core.HealthMonitor.run(HealthMonitor.java:44)"
+      ],
+      "metadata": {
+        "deadlocked_threads": ["worker-14", "worker-22"],
+        "locked_resources": ["tx_batch_7701", "tx_batch_7702"],
+        "deadlock_duration_ms": 12000,
+        "affected_transactions": 847
+      }
+    },
+    {
+      "id": "log-0012",
+      "timestamp": "2026-02-06T08:13:45.221Z",
+      "service": "api-gateway",
+      "instance": "gw-pod-2b5e",
+      "level": "CRITICAL",
+      "message": "Health check cascade: 4/6 payment-service pods failing readiness probe, traffic shifted to 2 remaining pods",
+      "trace_id": null,
+      "span_id": null,
+      "metadata": {
+        "total_pods": 6,
+        "healthy_pods": 2,
+        "failing_pods": ["pay-pod-9b1e", "pay-pod-4f2c", "pay-pod-new-6h4c", "pay-pod-1a9d"],
+        "healthy_pods_list": ["pay-pod-7k2m", "pay-pod-3j8n"],
+        "traffic_concentration_factor": 3.0,
+        "estimated_capacity_pct": 33
+      }
+    }
+  ]
+}
